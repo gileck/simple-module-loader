@@ -1,0 +1,4 @@
+self.postMessage({
+    type: "openPopup"
+})
+
