@@ -16,14 +16,14 @@ export default function (modulesMetadata) {
                 const {name, deps, load} = modulesMetadata[moduleName]
                 load().then(module => {
 
-                    //saving factory function for later use (if cant inisiate module right now)
+                    //saving factory function for later use (if cant initiate module right now)
                     modulesMetadata[moduleName].factory = module.default
 
-                    //registering module (not the instance, just the module)
+                    //registering the module (not the instance, just the module)
                     if (!modules[name]) {
                         modules[name] = {
                             instances: [],
-                            //tracking the length to know when the module is ready to be injected to other modules as a dependency
+                            //tracking the length to know when the dependency is ready to be injected to other modules (multiple modules might implement a single dependency)
                             length: Object.keys(modulesMetadata).filter(m => modulesToLoad.includes(m) && modulesMetadata[m].name === name).length
                         }
                     }
