@@ -7,7 +7,6 @@ export default function (modulesMetadata, sortedDependencyArray) {
 
     function loadModules(modulesToLoad) {
 
-        const sortByDependencies = (depA, depB) => sortedDependencyArray.indexOf(depA) - sortedDependencyArray.indexOf(depB)
         const isAllDepsLoaded = deps => deps.every(d => modules[d.name] && modules[d.name].instances && modules[d.name].instances.length === modules[d.name].length)
         const resolveDeps = deps => deps.map(d => d.type === "SINGLE" ? modules[d.name].instances[0] : modules[d.name].instances)
         const allModulesLoaded = () => Object.keys(modulesMetadata).filter(m => modulesToLoad.includes(m)).every(m => modulesMetadata[m] && modulesMetadata[m].instance)
@@ -33,10 +32,9 @@ export default function (modulesMetadata, sortedDependencyArray) {
                         const instance = modulesMetadata[moduleName].factory(...resolveDeps(deps))
                         modules[name].instances.push(instance)
                         modulesMetadata[moduleName].instance = true
-                        //after creating an instance, trying to create instances of other modules (that are either dependent of this module
-                        Object.keys(modulesMetadata)
-                            .filter(mod => modulesMetadata[mod].factory && !modulesMetadata[mod].instance)
-                            .sort(sortByDependencies)
+                        //after creating an instance, trying to create instances of other modules (that are either dependent on this module or dependent on some module that depends on it)
+                        modulesToLoad
+                            .filter(mod => modulesMetadata[mod].factory && !modulesMetadata[mod].instance && modulesMetadata[mod].depsDeep.includes(moduleName))
                             .forEach(moduleName => {
                                 const {factory, deps, name} = modulesMetadata[moduleName]
                                 if (isAllDepsLoaded(deps)) {

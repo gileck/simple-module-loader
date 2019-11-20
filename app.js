@@ -109,12 +109,14 @@ const modulesMetadata = {
 
 }
 
+const sortByDependencies = (depA, depB) => sortedDependencyArray.indexOf(depA) - sortedDependencyArray.indexOf(depB)
 const filterByFeature = d => !d.includes("-") || window.features.includes(modulesMetadata[d].partOf)
 const resolveModulesToLoad = () =>
     _(window.features)
         .map(f => [f, ...modulesMetadata[f].depsDeep.filter(filterByFeature)])
         .flatten()
         .uniq()
+        .sort(sortByDependencies)
         .value()
 
 const loader = moduleLoader(modulesMetadata, sortedDependencyArray)
