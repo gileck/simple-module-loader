@@ -16,13 +16,15 @@ export default function (modulesMetadata, sortedDependencyArray) {
             modulesToLoad.forEach(moduleName => {
                 const {name, deps, load} = modulesMetadata[moduleName]
                 load().then(module => {
-                    // console.log(moduleName);
-                    // console.log(modulesMetadata[moduleName]);
+
+                    //saving factory function for later use (if cant inisiate module right now)
                     modulesMetadata[moduleName].factory = module.default
 
+                    //registering module (not the instance, just the module)
                     if (!modules[name]) {
                         modules[name] = {
                             instances: [],
+                            //tracking the length to know when the module is ready to be injected to other modules as a dependency
                             length: Object.keys(modulesMetadata).filter(m => modulesToLoad.includes(m) && modulesMetadata[m].name === name).length
                         }
                     }
@@ -31,25 +33,18 @@ export default function (modulesMetadata, sortedDependencyArray) {
                         const instance = modulesMetadata[moduleName].factory(...resolveDeps(deps))
                         modules[name].instances.push(instance)
                         modulesMetadata[moduleName].instance = true
-
-                        // console.log('try', Object.keys(modulesMetadata).filter(mod => modulesMetadata[mod].factory && !modulesMetadata[mod].instance));
-
+                        //after creating an instance, trying to create instances of other modules (that are either dependent of this module
                         Object.keys(modulesMetadata)
                             .filter(mod => modulesMetadata[mod].factory && !modulesMetadata[mod].instance)
                             .sort(sortByDependencies)
                             .forEach(moduleName => {
                                 const {factory, deps, name} = modulesMetadata[moduleName]
-                                // console.log('try', moduleName, isAllDepsLoaded(deps));
                                 if (isAllDepsLoaded(deps)) {
                                     modules[name].instances.push(factory(...resolveDeps(deps)))
                                     modulesMetadata[moduleName].instance = true
                                 }
                             })
                     }
-
-
-                    // if (allModulesLoaded()) {
-                    // console.log(Object.keys(modulesMetadata).filter(m => modulesToLoad.includes(m)).map(m => ({m, i: modulesMetadata[m] && modulesMetadata[m].instance})));
                     if (allModulesLoaded()) {
                         resolve(modules)
                     }
