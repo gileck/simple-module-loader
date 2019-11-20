@@ -1,4 +1,4 @@
-export default function (modulesMetadata, sortedDependencyArray) {
+export default function (modulesMetadata) {
     let modules = {}
 
     function loadModule() {
