@@ -1,7 +1,6 @@
-import {UI} from '../../types';
-import {modules} from "../../constants.ts";
+import {UI, Feature} from '../../types';
 
-export default function(ui: UI) {
+export default function(ui: UI): Feature {
     return {
         doWork() {
             ui.Write('FeatureB')
@@ -9,7 +8,5 @@ export default function(ui: UI) {
     }
 }
 
-export const deps = [modules.UI]
-export const name = modules.FeatureB
 
 

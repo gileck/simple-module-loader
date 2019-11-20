@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+  </head>
+  <body>
+
+  </body>
+</html>
+
+<script>
+
+    const sortedDependencyArray = [
+        "UI",
+        "BI",
+        "FeatureA",
+        "FeatureA-PlatformHandlers",
+        "FeatureB",
+        "FeatureB-PlatformHandlers",
+        "FeatureB-RouterHandlers",
+        "FeatureC",
+        "FeatureC-RouterHandlers",
+        "FeatureD",
+        "Platform",
+        "Router"
+    ]
+    const modulesToLoad = ["UI", "BI", "FeatureA-PlatformHandlers", 'Platform', 'FeatureB-PlatformHandlers']
+    window.modules = {}
+    window.modulesMetadata = {
+        'FeatureA': {
+            load: () => import('./modules/featureA/index.ts'),
+            name: 'FeatureA',
+            deps: ['UI'],
+            depsDeep: ['UI']
+        },
+        'FeatureA-PlatformHandlers': {
+            load: () => import('./modules/featureA/PlatformHandlers.ts'),
+            name: 'PlatformHandlers',
+            deps: [],
+            depsDeep: []
+        },
+        'FeatureB': {
+            load: () => import('./modules/featureB/index.ts'),
+            name: 'FeatureB',
+            deps: ['UI'],
+            depsDeep: ['UI']
+        },
+        'FeatureB-PlatformHandlers': {
+            load: () => import('./modules/featureB/PlatformHandlers.ts'),
+            name: 'PlatformHandlers',
+            deps: [],
+            depsDeep: []
+        },
+        'FeatureB-RouterHandlers': {
+            load: () => import('./modules/featureB/RouterHandlers.ts'),
+            name: 'RouterHandlers',
+            deps: [],
+            depsDeep: []
+        },
+        'FeatureC': {
+            load: () => import('./modules/featureC/index.ts'),
+            name: 'FeatureC',
+            deps: ['UI'],
+            depsDeep: ['UI']
+        },
+        'FeatureC-RouterHandlers': {
+            load: () => import('./modules/featureC/RouterHandlers.ts'),
+            name: 'RouterHandlers',
+            deps: [],
+            depsDeep: []
+        },
+        'FeatureD': {
+            load: () => import('./modules/featureD/index.ts'),
+            name: 'FeatureD',
+            deps: ['UI'],
+            depsDeep: ['UI']
+        },
+        'Platform': {
+            load: () => import('./modules/Platform/index.ts'),
+            name: 'Platform',
+            deps: ['UI', 'BI'],
+            // deps: ['UI', 'BI', 'PlatformHandlers'],
+            depsDeep: ['UI', 'BI', 'FeatureA-PlatformHandlers', 'FeatureB-PlatformHandlers']
+        },
+        'UI': {
+            load: () => import('./modules/UI/index.ts'),
+            name: 'UI',
+            deps: [],
+            depsDeep: []
+        },
+        'BI': {
+            load: () => import('./modules/BI/index.ts'),
+            name: 'BI',
+            deps: ['UI'],
+            depsDeep: []
+        },
+        'Router': {
+            load: () => import('./modules/router/index.ts'),
+            name: 'Router',
+            deps: ['UI', 'RouterHandlers'],
+            depsDeep: ['UI', 'FeatureA-RouterHandlers', 'FeatureB-RouterHandlers']
+        },
+
+    }
+
+    const sortByDependencies = (depA, depB) => sortedDependencyArray.indexOf(depA) - sortedDependencyArray.indexOf(depB)
+    const isAllDepsLoaded = deps => deps.every(d => modules[d] && modules[d].instances && modules[d].instances.length === modules[d].length)
+    const resolveDeps = deps => deps.map(d => modules[d].instances)
+
+    function load(moduleName) {
+        console.log('** loading', moduleName);
+        const {name, deps} = modulesMetadata[moduleName]
+        modulesMetadata[moduleName].factory = (...deps) => {
+            console.log('>> factory', moduleName, deps);
+            return moduleName
+        }
+
+        if (!modules[name]) {
+            modules[name] = {
+                instances: [],
+                length: Object.keys(modulesMetadata).filter(m => modulesToLoad.includes(m) && modulesMetadata[m].name === name).length
+            }
+        }
+
+        console.log('?? deps', moduleName, deps, deps.map(d => modules[d] && modules[d].instances && modules[d].instances.length === modules[d].length));
+
+        if (deps.every(d => modules[d] && modules[d].instances && modules[d].instances.length === modules[d].length)) {
+            const instance = modulesMetadata[moduleName].factory(...resolveDeps(deps))
+            modules[name].instances.push(instance)
+            modulesMetadata[moduleName].instance = true
+
+            const depsOfModules = Object.keys(modulesMetadata).filter(mod => modulesMetadata[mod].factory && !modulesMetadata[mod].instance)
+            console.log('<< deps of', moduleName, depsOfModules);
+            depsOfModules
+                .sort(sortByDependencies)
+                .forEach(moduleName => {
+                    const {factory, deps, name} = modulesMetadata[moduleName]
+                    console.log("trying", moduleName, deps.map(d => modules[d] && modules[d].instances && modules[d].instances.length === modules[d].length));
+                    if (isAllDepsLoaded(deps)) modules[name].instances.push(factory(...resolveDeps(deps)))
+                })
+        }
+
+    }
+
+    load('Platform')
+    load("BI")
+    load("UI")
+    load('FeatureB-PlatformHandlers')
+    load('FeatureA-PlatformHandlers')
+
+  console.log(modules);
+
+
+
+</script>

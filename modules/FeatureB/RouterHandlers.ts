@@ -1,6 +1,10 @@
-export default function() {
-    return function () {
-        //route logic
+import {RouterHandlers} from '../../types';
+
+export default function(): RouterHandlers {
+    return {
+        getRouterHandler() {
+
+        }
     }
 }
 

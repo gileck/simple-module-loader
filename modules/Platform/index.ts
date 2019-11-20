@@ -1,20 +1,15 @@
-import {BI, UI} from '../../types';
-import {modules, mergedModule} from '../../constants.ts'
+import {BI, UI, PlatformHandlers, Platform} from '../../types';
 
-export default function(ui: UI, platformHandlersArray: Array<object>, bi: BI) {
-    // const state = {}
+export default function(ui: UI, platformHandlersArray: Array<PlatformHandlers>, bi: BI): Platform {
     return {
         doWork() {
             bi.log('platform started')
             ui.Write('Platform')
             // @ts-ignore
-            const platformHandlers = Object.assign(...platformHandlersArray)
+            const platformHandlers = Object.assign(...platformHandlersArray.map(item => item.getPlatformHandlers()))
             const worker = new Worker('http://localhost:5000/modules/platform/worker.js')
             worker.onmessage = msg => platformHandlers[msg.data.type]()
         }
     }
 }
-
-export const name = modules.Platform
-export const deps = [modules.UI, mergedModule.PlatformHandlers, modules.BI]
 

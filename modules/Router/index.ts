@@ -1,17 +1,11 @@
-import {UI} from '../../types';
-import {mergedModule, modules} from '../../constants.ts';
+import {UI, RouterHandlers, Router} from '../../types';
 
-export default function(ui: UI, RouterHandlers: Array<object>) {
+export default function(ui: UI, RouterHandlers: Array<RouterHandlers>):Router {
     return {
         doWork() {
             ui.Write('Router')
-            console.log({RouterHandlers});
-
         }
     }
 }
-
-export const deps = [modules.UI, mergedModule.RouterHandlers]
-export const name = modules.Router
 
 

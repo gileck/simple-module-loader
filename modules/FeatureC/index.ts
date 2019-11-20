@@ -1,13 +1,11 @@
+import {UI, Feature} from '../../types';
 
-export default function(UI) {
+export default function(ui: UI): Feature {
     return {
         doWork() {
-            UI.Write('FeatureC')
+            ui.Write('FeatureC')
         }
     }
 }
-
-export const deps = ['UI']
-export const name = 'FeatureC'
 
 

@@ -1,10 +1,12 @@
-export default function() {
+import {PlatformHandlers} from '../../types';
+
+export default function(): PlatformHandlers {
     return {
-        c() {},
-        d() {}
+        getPlatformHandlers() {
+            return {
+                c() {},
+                d() {},
+            }
+        }
     }
 }
-
-
-export const deps = []
-export const name = 'FeatureB-PlatformHandlers'

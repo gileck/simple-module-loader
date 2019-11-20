@@ -3,48 +3,127 @@ import moduleLoader from './moduleLoader'
 
 // window.features = ['FeatureA']
 window.features = ['FeatureA', 'FeatureB', 'Platform', 'Router']
-const mergedModules = ['PlatformHandlers', 'RouterHandlers']
+const SINGLE = 'SINGLE'
+const MULTI = 'MULTI'
 
-const loadModules = {
-    'FeatureA': () => import('./modules/featureA/index.ts'),
-    'FeatureA-PlatformHandlers': () => import('./modules/featureA/PlatformHandlers.ts'),
-    'FeatureB': () => import('./modules/featureB/index.ts'),
-    'FeatureB-PlatformHandlers': () => import('./modules/featureB/PlatformHandlers.ts'),
-    'FeatureB-RouterHandlers': () => import('./modules/featureB/RouterHandlers.ts'),
-    'FeatureC': () => import('./modules/featureC/index.ts'),
-    'FeatureC-RouterHandlers': () => import('./modules/featureC/RouterHandlers.ts'),
-    'FeatureD': () => import('./modules/featureD/index.ts'),
-    'Platform': () => import('./modules/Platform/index.ts'),
-    'UI': () => import('./modules/UI/index.ts'),
-    'BI': () => import('./modules/BI/index.ts'),
-    'Router': () => import('./modules/router/index.ts'),
+const sortedDependencyArray = [
+    "UI",
+    "BI",
+    "FeatureA",
+    "FeatureA-PlatformHandlers",
+    "FeatureB",
+    "FeatureB-PlatformHandlers",
+    "FeatureB-RouterHandlers",
+    "FeatureC",
+    "FeatureC-RouterHandlers",
+    "FeatureD",
+    "Platform",
+    "Router"
+]
+
+const modulesMetadata = {
+    'FeatureA': {
+        load: () => import('./modules/featureA/index.ts'),
+        name: 'FeatureA',
+        deps: [{name: 'UI', type: SINGLE}],
+        depsDeep: ['UI'],
+        partOf: 'FeatureA'
+    },
+    'FeatureA-PlatformHandlers': {
+        load: () => import('./modules/featureA/PlatformHandlers.ts'),
+        name: 'PlatformHandlers',
+        deps: [],
+        depsDeep: [],
+        partOf: 'FeatureA'
+    },
+    'FeatureB': {
+        load: () => import('./modules/featureB/index.ts'),
+        name: 'FeatureB',
+        deps: [{name: 'UI', type: SINGLE}],
+        depsDeep: ['UI'],
+        partOf: 'FeatureB'
+    },
+    'FeatureB-PlatformHandlers': {
+        load: () => import('./modules/featureB/PlatformHandlers.ts'),
+        name: 'PlatformHandlers',
+        deps: [],
+        depsDeep: [],
+        partOf: 'FeatureB'
+    },
+    'FeatureB-RouterHandlers': {
+        load: () => import('./modules/featureB/RouterHandlers.ts'),
+        name: 'RouterHandlers',
+        deps: [],
+        depsDeep: [],
+        partOf: 'FeatureB'
+    },
+    'FeatureC': {
+        load: () => import('./modules/featureC/index.ts'),
+        name: 'FeatureC',
+        deps: [{name: 'UI', type: SINGLE}],
+        depsDeep: ['UI'],
+        partOf: 'FeatureC'
+    },
+    'FeatureC-RouterHandlers': {
+        load: () => import('./modules/featureC/RouterHandlers.ts'),
+        name: 'RouterHandlers',
+        deps: [],
+        depsDeep: [],
+        partOf: 'FeatureC'
+    },
+    'FeatureD': {
+        load: () => import('./modules/featureD/index.ts'),
+        name: 'FeatureD',
+        deps: [{name: 'UI', type: SINGLE}],
+        depsDeep: ['UI'],
+        partOf: 'FeatureD'
+    },
+    'Platform': {
+        load: () => import('./modules/Platform/index.ts'),
+        name: 'Platform',
+        deps: [{name: 'UI', type: SINGLE}, {name: 'PlatformHandlers', type: MULTI}, {name: 'BI', type: SINGLE}],
+        depsDeep: ['UI', 'BI', 'FeatureA-PlatformHandlers', 'FeatureB-PlatformHandlers'],
+        partOf: 'Platform'
+    },
+    'UI': {
+        load: () => import('./modules/UI/index.ts'),
+        name: 'UI',
+        deps: [],
+        depsDeep: [],
+        partOf: 'UI'
+    },
+    'BI': {
+        load: () => import('./modules/BI/index.ts'),
+        name: 'BI',
+        deps: [],
+        depsDeep: [],
+        partOf: 'BI'
+    },
+    'Router': {
+        load: () => import('./modules/router/index.ts'),
+        name: 'Router',
+        deps: [{name: 'UI', type: SINGLE}, {name: 'RouterHandlers', type: MULTI}],
+        depsDeep: ['UI', 'FeatureC-RouterHandlers', 'FeatureB-RouterHandlers'],
+        partOf: 'Router'
+    },
+
 }
-const moduleDeps = {
-    'FeatureA-PlatformHandlers': [],
-    'FeatureA': ['UI'],
-    'FeatureB-PlatformHandlers': [],
-    'FeatureB-RouterHandlers': [],
-    'FeatureB': ['UI'],
-    'FeatureC-RouterHandlers': [],
-    'FeatureC': ['UI'],
-    'FeatureD': ['UI'],
-    'Platform': ['BI', 'UI', 'FeatureA-PlatformHandlers', 'FeatureB-PlatformHandlers'],
-    'Router': ['UI', 'FeatureB-RouterHandlers', 'FeatureC-RouterHandlers'],
-    'UI': [],
-    'BI': [],
-}
 
-const filterByFeature = d => d.includes("-") ? window.features.some(f => d.includes(f)) : true
-const resolveModulesToLoad = () => _(window.features).map(f => [f, ...moduleDeps[f].filter(filterByFeature)]).flatten().uniq().value()
+const filterByFeature = d => !d.includes("-") || window.features.includes(modulesMetadata[d].partOf)
+const resolveModulesToLoad = () =>
+    _(window.features)
+        .map(f => [f, ...modulesMetadata[f].depsDeep.filter(filterByFeature)])
+        .flatten()
+        .uniq()
+        .value()
 
-const loader = moduleLoader(loadModules, mergedModules)
+const loader = moduleLoader(modulesMetadata, sortedDependencyArray)
 
 async function start() {
     const modulesToLoad = resolveModulesToLoad()
     const modules = await loader.loadModules(modulesToLoad)
-    console.log({modules})
-    console.log({features});
-    features.forEach(f => modules[f].doWork())
+    console.log(features);
+    features.forEach(f => modules[f].instances[0].doWork())
 }
 
 start()
