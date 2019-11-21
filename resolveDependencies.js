@@ -2,6 +2,7 @@ const parser = require('@babel/parser')
 const fs = require('fs')
 const _ = require('lodash')
 const folders = fs.readdirSync('./modules')
+const tsort = require('./tsort')
 const files = _.flatten(folders.map(folder => fs.readdirSync('./modules/' + folder).map(file => folder + '/' + file))).filter(f => !f.includes('.js'))
 const options = {sourceType: "module",  plugins: ['typescript']}
 
@@ -49,10 +50,13 @@ function resolveAllModules(deps) {
     return _(allDeps).flatten().uniq().filter(m => modules[m]).value()
 }
 
-console.log(modules);
+// console.log(modules);
 // console.log(resolveAllModules([ 'UI', 'platformHandlers' ]))
-console.log(_.mapValues(modules, (v, k) => ({deps: modules[k], allDeps: resolveAllModules(v.map(v => v.name))})))
-
+const modulesMetadata = _.mapValues(modules, (v, k) => ({deps: modules[k], allDeps: resolveAllModules(v.map(v => v.name))}))
+const modulesAllDeps = _.mapValues(modulesMetadata, v => v.allDeps)
+// console.log(modulesAllDeps)
+const r = tsort(modulesAllDeps)
+// console.log(r);
 // console.log(tsort(modules));
 
 

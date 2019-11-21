@@ -1,19 +1,23 @@
 export default function (modulesMetadata) {
     let modules = {}
 
-    function loadModule() {
-        //
+    // dynamically load a single module
+    async function loadModule(moduleName, multiInject = false) {
+    //     const modulesToLoad = [moduleName, ...modulesMetadata[moduleName].depsDeep]
+    // const loadedModules = await loadModules(modulesToLoad)
+    //     return multiInject ? loadedModules[moduleName].instances : loadedModules[moduleName].instances[0]
     }
 
     function loadModules(modulesToLoad) {
-
         const isAllDepsLoaded = deps => deps.every(d => modules[d.name] && modules[d.name].instances && modules[d.name].instances.length === modules[d.name].length)
         const resolveDeps = deps => deps.map(d => d.type === "SINGLE" ? modules[d.name].instances[0] : modules[d.name].instances)
         const allModulesLoaded = () => Object.keys(modulesMetadata).filter(m => modulesToLoad.includes(m)).every(m => modulesMetadata[m] && modulesMetadata[m].instance)
 
         return new Promise(resolve => {
             modulesToLoad.forEach(moduleName => {
-                const {name, deps, load} = modulesMetadata[moduleName]
+                const {name, deps, load, factory} = modulesMetadata[moduleName]
+                if (factory) return //module is already loaded
+
                 load().then(module => {
 
                     //saving factory function for later use (if cant initiate module right now)
