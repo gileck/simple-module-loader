@@ -1,13 +1,6 @@
 export default function (modulesMetadata) {
     let modules = {}
 
-    // dynamically load a single module
-    async function loadModule(moduleName, multiInject = false) {
-    //     const modulesToLoad = [moduleName, ...modulesMetadata[moduleName].depsDeep]
-    // const loadedModules = await loadModules(modulesToLoad)
-    //     return multiInject ? loadedModules[moduleName].instances : loadedModules[moduleName].instances[0]
-    }
-
     function loadModules(modulesToLoad) {
         const isAllDepsLoaded = deps => deps.every(d => modules[d.name] && modules[d.name].instances && modules[d.name].instances.length === modules[d.name].length)
         const resolveDeps = deps => deps.map(d => d.type === "SINGLE" ? modules[d.name].instances[0] : modules[d.name].instances)
@@ -55,8 +48,15 @@ export default function (modulesMetadata) {
         })
     }
 
+    // dynamically load a single module
+    async function loadModule(moduleName, multiInject = false) {
+        //     const modulesToLoad = [moduleName, ...modulesMetadata[moduleName].depsDeep]
+        // const loadedModules = await loadModules(modulesToLoad)
+        //     return multiInject ? loadedModules[moduleName].instances : loadedModules[moduleName].instances[0]
+    }
+
     return {
-        loadModule,
-        loadModules
+        loadModules,
+        loadModule
     }
 }
