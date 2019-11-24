@@ -1,4 +1,6 @@
-export default function() {
+import {UI} from '../../types';
+
+export default function(): UI {
     return {
         Write(text) {
             const div = document.createElement('div')
@@ -7,7 +9,4 @@ export default function() {
         }
     }
 }
-
-export const deps = []
-export const name = 'UI'
 

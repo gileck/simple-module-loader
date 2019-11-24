@@ -6,7 +6,7 @@ export default function(ui: UI, platformHandlersArray: Array<PlatformHandlers>, 
             bi.log('platform started')
             ui.Write('Platform')
             // @ts-ignore
-            const platformHandlers = Object.assign(...platformHandlersArray.map(item => item.getPlatformHandlers()))
+            const platformHandlers = Object.assign(...platformHandlersArray)
             const worker = new Worker('http://localhost:5000/modules/platform/worker.js')
             worker.onmessage = msg => platformHandlers[msg.data.type]()
         }

@@ -1,12 +1,11 @@
 import {UI, Feature} from '../../types';
 
-export default function(ui: UI): Feature {
+export default function(ui: UI) {
     return {
         doWork() {
-            ui.Write('FeatureB')
+            ui.Write('FeatureA')
         }
     }
 }
-
 
 

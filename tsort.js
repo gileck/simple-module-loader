@@ -1,21 +1,21 @@
 function tsort(edges) {
-    var nodes   = {}, // hash: stringified id of the node => { id: id, afters: lisf of ids }
+    const nodes   = {}, // hash: stringified id of the node => { id: id, afters: lisf of ids }
         sorted  = [], // sorted list of IDs ( returned value )
         visited = {}; // hash: id of already visited node => true
-    var Node = function(id) {
+    const Node = function(id) {
         this.id = id;
         this.afters = [];
     }
     // 1. build data structures
     edges.forEach(function(v) {
-        var from = v[0], to = v[1];
+        const from = v[0], to = v[1];
         if (!nodes[from]) nodes[from] = new Node(from);
         if (!nodes[to]) nodes[to]     = new Node(to);
         nodes[from].afters.push(to);
     });
     // 2. topological sort
     Object.keys(nodes).forEach(function visit(idstr, ancestors) {
-        var node = nodes[idstr],
+        const node = nodes[idstr],
             id   = node.id;
         // if already exists, do nothing
         if (visited[idstr]) return;

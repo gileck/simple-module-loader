@@ -109,28 +109,28 @@
             deps: [],
             depsDeep: []
         },
-        "C": {
-            name: 'C',
-            deps: ['A', 'B'],
-            depsDeep: ['A', 'B'],
-        },
         "B": {
             name: "B",
             deps: ['A'],
             depsDeep: ['A']
         },
+        "C": {
+            name: 'C',
+            deps: ['A', 'B', 'D'],
+            depsDeep: ['A', 'B', 'D'],
+        },
         "D": {
             name: "D",
-            deps: [],
-            depsDeep: []
+            deps: ["A"],
+            depsDeep: ["A"]
         },
         "E": {
             name: "E",
-            deps: ['D'],
-            depsDeep: ['D']
+            deps: ['D', 'C'],
+            depsDeep: ['D', "C"]
         }
     }
-    const sortedDependencyArray = ["A", "D", "E", "B", "C"]
+    const sortedDependencyArray = ["A", "D", "B", "C",  "E"]
     const sortByDependencies = (depA, depB) => sortedDependencyArray.indexOf(depA) - sortedDependencyArray.indexOf(depB)
     const modulesToLoad = ["A", "D", "B", "C", "E"].sort(sortByDependencies)
 
@@ -171,10 +171,10 @@
 
     }
 
-    load("E")
-    load("C")
-    load("B")
     load("A")
+    load("B")
+    load("C")
+    load("E")
     load("D")
     // load('FeatureA-PlatformHandlers')
 

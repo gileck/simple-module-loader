@@ -2,6 +2,7 @@ export default function (modulesMetadata) {
     let modules = {}
 
     function loadModules(modulesToLoad) {
+        //can be improved with deps counter
         const isAllDepsLoaded = deps => deps.every(d => modules[d.name] && modules[d.name].instances && modules[d.name].instances.length === modules[d.name].length)
         const resolveDeps = deps => deps.map(d => d.type === "SINGLE" ? modules[d.name].instances[0] : modules[d.name].instances)
         const allModulesLoaded = () => Object.keys(modulesMetadata).filter(m => modulesToLoad.includes(m)).every(m => modulesMetadata[m] && modulesMetadata[m].instance)
@@ -30,6 +31,7 @@ export default function (modulesMetadata) {
                         modules[name].instances.push(instance)
                         modulesMetadata[moduleName].instance = true
                         //after creating an instance, trying to create instances of other modules (that are either dependent on this module or dependent on some module that depends on it)
+                        //update counter for all my deps
                         modulesToLoad
                             .filter(mod => modulesMetadata[mod].factory && !modulesMetadata[mod].instance && modulesMetadata[mod].depsDeep.includes(moduleName))
                             .forEach(moduleName => {
@@ -50,9 +52,9 @@ export default function (modulesMetadata) {
 
     // dynamically load a single module
     async function loadModule(moduleName, multiInject = false) {
-        //     const modulesToLoad = [moduleName, ...modulesMetadata[moduleName].depsDeep]
-        // const loadedModules = await loadModules(modulesToLoad)
-        //     return multiInject ? loadedModules[moduleName].instances : loadedModules[moduleName].instances[0]
+        const modulesToLoad = [moduleName, ...modulesMetadata[moduleName].depsDeep]
+        const loadedModules = await loadModules(modulesToLoad)
+        return multiInject ? loadedModules[moduleName].instances : loadedModules[moduleName].instances[0]
     }
 
     return {
