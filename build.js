@@ -19,6 +19,7 @@ function getModuleNames() {
             moduleName,
             path,
             load: load,
+            shouldFilterByFeature: !file.includes('index.module'),
             partOf: file.split('/')[0],
             deps,
             name: resolveImplements(path, moduleName)
@@ -49,8 +50,8 @@ function getDeps(ast) {
         const typeAnnotation = param.typeAnnotation.typeAnnotation
         return typeAnnotation.typeName.name === "Array" ? {
             name: typeAnnotation.typeParameters.params[0].typeName.name,
-            type: "MULTI"
-        } : {name: typeAnnotation.typeName.name, type: "SINGLE"}
+            isArray: true
+        } : {name: typeAnnotation.typeName.name, isArray: false}
     })
 }
 
@@ -74,7 +75,8 @@ function resolveAllDeepDependencies(modulesMetadata, deps) {
 
 function findDepsOf(modulesMetadata, module) {
     return Object.keys(modulesMetadata).filter(m => {
-        return modulesMetadata[m].deps.find(d => (d.type === "SINGLE") ? module.moduleName === d.name : Object.keys(modulesMetadata).filter(v => modulesMetadata[v].name === d.name).includes(module.moduleName))
+        // return modulesMetadata[m].deps.find(d => (d.type === "SINGLE") ? module.moduleName === d.name : Object.keys(modulesMetadata).filter(v => modulesMetadata[v].name === d.name).includes(module.moduleName))
+        return modulesMetadata[m].deps.find(d => !d.isArray ? module.moduleName === d.name : Object.keys(modulesMetadata).filter(v => modulesMetadata[v].name === d.name).includes(module.moduleName))
     })
 }
 
@@ -82,7 +84,7 @@ function build() {
     const modulesMetadata = getModuleNames()
     _.mapValues(modulesMetadata, m => Object.assign(m, {
         depsDeep: resolveAllDeepDependencies(modulesMetadata, m.deps.map(v => v.name)),
-        // dependencyOf: findDepsOf(modulesMetadata, m)
+        dependencyOf: findDepsOf(modulesMetadata, m)
     }))
     const modulesAllDeps = _.mapValues(modulesMetadata, v => v.depsDeep)
     const sortedByDepsArray = tsort(modulesAllDeps)

@@ -1,11 +1,20 @@
+import {someFunc} from "./modules/common/common";
+
 export default function (modulesMetadata) {
     let modules = {}
 
     function loadModules(modulesToLoad) {
         //can be improved with deps counter
         const isAllDepsLoaded = deps => deps.every(d => modules[d.name] && modules[d.name].instances && modules[d.name].instances.length === modules[d.name].length)
-        const resolveDeps = deps => deps.map(d => d.type === "SINGLE" ? modules[d.name].instances[0] : modules[d.name].instances)
+        const resolveDeps = deps => deps.map(d => d.isArray ? modules[d.name].instances : modules[d.name].instances[0])
         const allModulesLoaded = () => Object.keys(modulesMetadata).filter(m => modulesToLoad.includes(m)).every(m => modulesMetadata[m] && modulesMetadata[m].instance)
+        const isModuleWaitingForThisModule = (thisModule, moduleName) => modulesMetadata[moduleName].factory && !modulesMetadata[moduleName].instance && modulesMetadata[moduleName].depsDeep.includes(thisModule)
+
+        function initModule(moduleName, name) {
+            const instance = modulesMetadata[moduleName].factory(...resolveDeps(modulesMetadata[moduleName].deps))
+            modules[name].instances.push(instance)
+            modulesMetadata[moduleName].instance = true
+        }
 
         return new Promise(resolve => {
             modulesToLoad.forEach(moduleName => {
@@ -27,23 +36,14 @@ export default function (modulesMetadata) {
                     }
 
                     if (isAllDepsLoaded(deps)) {
-                        const instance = modulesMetadata[moduleName].factory(...resolveDeps(deps))
-                        modules[name].instances.push(instance)
-                        modulesMetadata[moduleName].instance = true
-                        //after creating an instance, trying to create instances of other modules (that are either dependent on this module or dependent on some module that depends on it)
-                        //update counter for all my deps
-                        modulesToLoad
-                            .filter(mod => modulesMetadata[mod].factory && !modulesMetadata[mod].instance && modulesMetadata[mod].depsDeep.includes(moduleName))
-                            .forEach(moduleName => {
-                                const {factory, deps, name} = modulesMetadata[moduleName]
-                                if (isAllDepsLoaded(deps)) {
-                                    modules[name].instances.push(factory(...resolveDeps(deps)))
-                                    modulesMetadata[moduleName].instance = true
-                                }
-                            })
+                        initModule(moduleName, name)
+                        modulesToLoad.filter(mod => isModuleWaitingForThisModule(moduleName, mod)).forEach(mod => {
+                            if (isAllDepsLoaded(modulesMetadata[mod].deps)) initModule(mod, modulesMetadata[mod].name)
+                        })
                     }
                     if (allModulesLoaded()) {
                         resolve(modules)
+                        console.log(modules);
                     }
                 })
             })
