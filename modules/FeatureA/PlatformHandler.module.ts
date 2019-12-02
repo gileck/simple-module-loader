@@ -1,6 +1,6 @@
-import {PlatformHandlers} from '../../types';
+import {PlatformHandler} from '../../types';
 
-export default function(): PlatformHandlers {
+export default function(): PlatformHandler {
   return {
     a() {},
     b() {},

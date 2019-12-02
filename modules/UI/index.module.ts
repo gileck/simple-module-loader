@@ -1,6 +1,6 @@
-import {UI} from '../../types';
+import {BI, UI} from '../../types';
 
-export default function(): UI {
+export default function(bi: BI): UI {
     return {
         Write(text) {
             const div = document.createElement('div')
