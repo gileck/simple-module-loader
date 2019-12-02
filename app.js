@@ -1,26 +1,35 @@
 import _ from 'lodash'
-import moduleLoader from './moduleLoader'
+import {loadModules} from './moduleLoader'
 import {modulesMetadata} from './build-time/modulesMetaData'
 import {sortedDependencyArray} from './build-time/sortedDependencyArray'
+// console.log(modulesMetadata);
+// console.log(sortedDependencyArray);
 
 // window.features = ['FeatureA']
 window.features = ['FeatureA', 'FeatureB', 'Platform', 'Router']
 
-const sortByDependencies = (depA, depB) => sortedDependencyArray.indexOf(depA) - sortedDependencyArray.indexOf(depB)
-const filterByFeature = d => !modulesMetadata[d].shouldFilterByFeature || window.features.includes(modulesMetadata[d].partOf)
-
-const modulesToLoad = _(window.features)
-        .map(f => [f, ...modulesMetadata[f].depsDeep.filter(filterByFeature)])
+const allPossibleModulesToLoad = _(window.features)
+        .map(f => [f, ...modulesMetadata[f].depsDeep])
         .flatten()
         .uniq()
-        .sort(sortByDependencies)
+        .keyBy(x => x)
         .value()
 
-const loader = moduleLoader(modulesMetadata)
+const onlyModulesWeNeedToLoad =  _(allPossibleModulesToLoad)
+        .pickBy(moduleName => _.get(allPossibleModulesToLoad, modulesMetadata[moduleName].partOf))
+        .value()
+
+const modulesToLoad = _.mapValues(onlyModulesWeNeedToLoad, key => {
+    const module = modulesMetadata[key]
+
+    return {load: module.load, deps: _(module.deps).flatten().filter(d => onlyModulesWeNeedToLoad[d]).value()}
+})
 
 async function start() {
-    const modules = await loader.loadModules(modulesToLoad)
-    features.forEach(f => modules[f].instances[0].doWork())
+    const modules = await loadModules(modulesToLoad)
+    // console.log(modules);
+    // console.log(features);
+    features.forEach(f => modules[f].doWork())
 }
 
 start()

@@ -1,1 +1,1 @@
-export const sortedDependencyArray = ["FeatureC-RouterHandlers","FeatureB-RouterHandlers","FeatureB-PlatformHandlers","FeatureA-PlatformHandlers","BI","UI","Router","Platform","FeatureD","FeatureC","FeatureB","FeatureA"]
+export const sortedDependencyArray = ["FeatureC-RouterHandlers","FeatureB-RouterHandler","FeatureB-PlatformHandler","FeatureA-PlatformHandler","BI","UI","Router","Platform","FeatureD","FeatureC","FeatureB","FeatureA"]

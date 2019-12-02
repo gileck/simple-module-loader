@@ -10,8 +10,13 @@ export interface Platform {
   doWork(): any
 }
 
-export type PlatformHandlers = any
-export type RouterHandlers = any
+export interface PlatformHandler {
+
+}
+
+export interface RouterHandler {
+
+}
 
 export interface Feature {
   doWork(): any
